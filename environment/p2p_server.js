@@ -204,6 +204,7 @@ class P2PServer {
 	    if (newFragments.length > this.fragments.length) {
 	        console.log('Received queue is valid. Replacing current queue with received queue.');
 	        this.fragments = newFragments;
+	        this.sincronizeFragments(this.fragments);
 	        this.broadcast(this.responseLatestFragment());
 	    } else {
 	        console.log('Received queue is invalid.');
