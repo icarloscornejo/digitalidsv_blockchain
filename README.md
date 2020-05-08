@@ -5,7 +5,7 @@
 # Digital ID SV Javascript Blockchain
 
 ### Objetivo
-El objetivo de este proyecto se centra en la hackaton de Elaniin Digital del 2018, busca demostrar una correcta implementacion de blockchain para guardar la identidad de una persona.
+El objetivo de este proyecto se centra en una hackaton realizada en 2018, busca demostrar una correcta implementacion de blockchain para guardar la identidad de una persona.
 El enfoque de este proyecto es hacia una identidad digital fragmentada, la cual estaria disponible para el usuario y para cualquier entidad que la requiera.
 
 ### ¿Blockchain?
