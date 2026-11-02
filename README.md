@@ -1,51 +1,57 @@
-<div align="center">
-  <img src="http://toolboxsv.com/git/hackathon0118/icon_blue.png" width="200" />
-</div>
+# Digital ID SV Blockchain
 
-# Digital ID SV Javascript Blockchain
+A proof-of-work blockchain that stores a person's digital identity as fragments, synced between nodes over WebSockets. Built in Node.js at the Elaniin blockchain hackathon in San Salvador, in January 2018.
 
-### Objetivo
-El objetivo de este proyecto se centra en una hackaton realizada en 2018, busca demostrar una correcta implementacion de blockchain para guardar la identidad de una persona.
-El enfoque de este proyecto es hacia una identidad digital fragmentada, la cual estaria disponible para el usuario y para cualquier entidad que la requiera.
+The idea: instead of one central database holding everyone's identity, each piece of it (a birth certificate, an address, an ID number) is added as a fragment, mined into a block, and replicated by every node in the network. Any node can read the chain, and no single node can rewrite it.
 
-### ¿Blockchain?
-Blockchain se podria reconocer como una base de datos administrada por una cantidad N de nodos en una red mundial, esta base de datos se le atribuye el reconocimiento de ser una entidad descentralizada, quiere decir que cada nodo de la red tiene el mismo nivel y internamente los nodos validan todo tipo de registros que se quieran incorporar.
+This is a hackathon prototype, kept as it was built, with a few fixes. It has no authentication and keeps everything in memory, so it is not meant for production.
 
-### Tecnologias
-Digital ID SV utiliza las siguientes tecnologias en Node.js:
+## How it works
 
-* [CryptoJS] - Util para criptografia.
-* [WebSocket] - Canal de comunicacion live entre los nodos de la red.
-* [bodyParser] - Encargado de parsear.
+1. **Fragments queue up.** `POST /addFragment` adds an identity fragment to a pending queue, and the queue is broadcast to every connected peer.
+2. **Mining seals them.** `GET /mineBlock` takes the queued fragments, builds the next block and searches for a nonce until the block's SHA-256 hash starts with four zeros (proof of work). Mining stops early if a peer finds the block first.
+3. **Peers agree.** The new block is broadcast. Each peer checks the index, the link to the previous hash and the hash itself, including the nonce and the fragment data, before appending it. A peer that falls behind asks for the whole chain and replaces its own only if the received one is longer and valid from the genesis block.
+## Run it
 
-### Instalacion
+Requires Node.js 18 or later.
 
-Digital ID SV reqiuiere [Node.js](https://nodejs.org/)
-
-Instala las dependencias y corre el proyecto
 ```sh
-$ npm install 
-node app.js
+npm install
+npm start
 ```
 
-### API
+Start a second node on other ports and point it at the first one:
 
-El blockchain tiene una API disponible para consultar y añadir datos.
+```sh
+HTTP_PORT=3002 P2P_PORT=6002 PEERS=ws://localhost:6001 npm start
+```
 
-#### Cadena de bloques
-* Endpoint: [URL_BASE]/blocks
-* Descripción: Retorna la serie de bloques registrados en el blockchain desde el bloque genesis.
-* Endpoint: [URL_BASE]/mineBlock
-* Descripción: Representa la funcion de minado de un bloque.
+Defaults: HTTP on port 3001, peer-to-peer WebSockets on port 6001.
 
-#### Nodos
-* Endpoint: [URL_BASE]/peers
-* Descripción: Permite obtener el listado de nodos conectados a la red.
-* Endpoint: [URL_BASE]/addPeer
-* Descripción: Permite añadir un nodo a la red.
+## API
 
-#### Fragmentos de identidad
-* Endpoint: [URL_BASE]/fragments
-* Descripción: Obtiene los fragmentos en cola por agregar al siguiente bloque minado.
-* Endpoint: [URL_BASE]/addFragment
-* Descripción: Permite añadir un fragmento de identidad a la cola.
+| Method | Endpoint | What it does |
+| --- | --- | --- |
+| GET | `/blocks` | The full chain, from the genesis block |
+| POST | `/addFragment` | Adds an identity fragment (any JSON) to the queue |
+| GET | `/fragments` | Fragments waiting for the next block |
+| GET | `/mineBlock` | Mines the queued fragments into a new block |
+| GET | `/cancel` | Stops the current mining |
+| GET | `/peers` | Connected peers |
+| POST | `/addPeer` | Connects to a peer: `{"peer": "ws://host:port"}` |
+
+## Tests
+
+```sh
+npm test
+```
+
+They mine a block, check that a peer accepts it, and check that a peer rejects the same block after its identity data is changed.
+
+## Credits
+
+The peer-to-peer sync and block validation started from [naivechain](https://github.com/lhartikk/naivechain) by Lauri Hartikka (Apache License 2.0). On top of it, this project adds proof-of-work mining with cancellation, the identity fragment queue shared across peers, and the genesis block.
+
+## License
+
+MIT, for the code written for this project. The parts adapted from naivechain stay under the Apache License 2.0.

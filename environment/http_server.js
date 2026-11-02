@@ -1,8 +1,7 @@
-var CryptoJS    = require("crypto-js");
-var WebSocket 	= require("ws");
 var express 	= require("express");
 var bodyParser 	= require('body-parser');
 const Block 	= require("./block.js");
+const sharedHash = require("./hash.js");
 
 var MessageTypes = {
     QUERY_LATEST: 0,
@@ -147,7 +146,7 @@ class HTTPServer {
 	}
 
 	calculateHash(index, previousHash, timestamp, data, nonce) {
-	    return CryptoJS.SHA256(index + previousHash + timestamp + data + nonce).toString();
+	    return sharedHash(index, previousHash, timestamp, data, nonce);
 	}
 
 	isValidNewBlock(newBlock, previousBlock) {

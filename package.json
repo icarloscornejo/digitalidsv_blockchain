@@ -1,17 +1,19 @@
 {
-  "name": "naivechain",
-  "version": "1.0.0",
-  "description": "",
+  "name": "digitalidsv-blockchain",
+  "version": "1.1.0",
+  "description": "Proof-of-work blockchain for fragmented digital identity, with peer sync over WebSockets.",
+  "license": "MIT",
   "scripts": {
-    "start": "node main.js"
+    "start": "node app.js",
+    "test": "node --test"
   },
   "dependencies": {
-    "body-parser": "^1.15.2",
-    "crypto-js": "^3.1.6",
-    "express": "~4.11.1",
-    "ws": "^1.1.0"
+    "body-parser": "^1.20.3",
+    "crypto-js": "^4.2.0",
+    "express": "^4.21.2",
+    "ws": "^8.18.0"
   },
   "engines": {
-    "node": ">=4.3.2"
+    "node": ">=18"
   }
 }

@@ -1,5 +1,6 @@
 var WebSocket 		= require("ws");
 const GenesisBlock 	= require("./genesis_block.js");
+const sharedHash 	= require("./hash.js");
 
 var MessageTypes = {
     QUERY_LATEST: 0,
@@ -93,12 +94,9 @@ class P2PServer {
         this.sockets.forEach(socket => this.write(socket, message))
     }
 
+    // Includes the nonce: mined blocks from other peers were rejected without it
     calculateHashForBlock(block) {
-	    return this.calculateHash(block.index, block.previousHash, block.timestamp, block.data);
-	}
-
-	calculateHash(index, previousHash, timestamp, data) {
-	    return CryptoJS.SHA256(index + previousHash + timestamp + data).toString();
+	    return sharedHash(block.index, block.previousHash, block.timestamp, block.data, block.nonce);
 	}
 
 	isValidNewBlock(newBlock, previousBlock) {
@@ -123,6 +121,11 @@ class P2PServer {
 	    if (latestBlockReceived.index > latestBlockHeld.index) {
 	        console.log('Our blockchain is possibly behind; We got: ' + latestBlockHeld.index + ' blocks,  Peer got: ' + latestBlockReceived.index + ' blocks');
 	        if (latestBlockHeld.hash === latestBlockReceived.previousHash) {
+	            // Validate before appending: a matching previous hash alone would accept a forged block
+	            if (!this.isValidNewBlock(latestBlockReceived, latestBlockHeld)) {
+	                console.log("Received block is invalid, rejected.");
+	                return;
+	            }
 	            console.log("We can append the received block to our chain.");
 	            this.httpServer.cancelMining();
 	            this.blockchain.push(latestBlockReceived);
